@@ -22,6 +22,30 @@ def _initParameterParser() -> argparse.ArgumentParser:
         default="gamelist.xml",
         required=False
     )
+    parser.add_argument(
+        "--dry-run", 
+        help="For testing. Does not modify any file.",
+        action="store_const",
+        const=True,
+        default=False,
+        required=False
+    )
+    parser.add_argument(
+        "--clear-images", 
+        help="Removes all image entries from the file instead.",
+        action="store_const",
+        const=True,
+        default=False,
+        required=False
+    )
+    parser.add_argument(
+        "--overwrite", 
+        help="Overwrites existing image entries in the file.",
+        action="store_const",
+        const=True,
+        default=False,
+        required=False
+    )
     return parser
 
 def _getTargetFileFromArguments(folderPath: str, fileName: str):
@@ -31,9 +55,15 @@ def _backupOriginalFile(filepath: str):
     shutil.copy2(filepath, filepath+".bak")
 
 def _openGamelistAsXml(filepath: str):
+    with open(filepath) as reader:
+        print("================")
+        print(reader.read())
+        print("================")
     return ElementTree.parse(filepath)
 
 def _getGameListFromXmlRoot(root: ElementTree.Element):
+    if root.tag != "gameList":
+        raise RuntimeError("XML format not supported (%s). Please provide an EmulationStation gamelist.xml" % root.tag)
     return root.iter("game")
 
 def _getNameFromGameEntry(gameEntry: ElementTree.Element):
@@ -52,8 +82,8 @@ def _getImageFromGameEntry(gameEntry: ElementTree.Element):
 def _doesGameEntryHasImageTag(gameEntry: ElementTree.Element):
     return _getImageFromGameEntry(gameEntry) != None
 
-def _processGameEntry(baseFolder:str, gameEntry: ElementTree.Element):
-    if _doesGameEntryHasImageTag(gameEntry):
+def _processGameEntry(baseFolder:str, gameEntry: ElementTree.Element, overwrite: bool = False):
+    if _doesGameEntryHasImageTag(gameEntry) and not overwrite:
         return
     _addImageToGameEntry(baseFolder, gameEntry)
 
@@ -97,11 +127,13 @@ def _makeFilepathRelative(filepath: str, baseFolder: str):
 
 def _removeImageFromGameEntry(gameEntry: ElementTree.Element):
     imageTag = _getImageFromGameEntry(gameEntry)
-    gameEntry.remove(imageTag)
+    if imageTag != None:
+        gameEntry.remove(imageTag)
 
 if __name__ == "__main__":
     argParser = _initParameterParser()
     args = argParser.parse_args()
+    print(args)
     
     baseFolder = os.path.join(os.getcwd(), args.folder)
     filepath = _getTargetFileFromArguments(args.folder, args.gamelist_file)
@@ -112,10 +144,13 @@ if __name__ == "__main__":
     print(root)
 
     for game in _getGameListFromXmlRoot(root):
-        _processGameEntry(baseFolder, game)
-        #_removeImageFromGameEntry(game)
+        if args.clear_images:
+            _removeImageFromGameEntry(game)
+        else:
+            _processGameEntry(baseFolder, game, args.overwrite)
 
-    gamelistXml.write(filepath)
+    if not args.dry_run:
+        gamelistXml.write(filepath)
 
 
 
