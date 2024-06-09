@@ -54,6 +54,9 @@ def _getTargetFileFromArguments(folderPath: str, fileName: str):
 def _backupOriginalFile(filepath: str):
     shutil.copy2(filepath, filepath+".bak")
 
+def _doesFileExists(filepath: str):
+    return Path(filepath).exists()
+
 def _openGamelistAsXml(filepath: str):
     with open(filepath) as reader:
         print("================")
@@ -137,6 +140,9 @@ if __name__ == "__main__":
     
     baseFolder = os.path.join(os.getcwd(), args.folder)
     filepath = _getTargetFileFromArguments(args.folder, args.gamelist_file)
+    if not _doesFileExists(filepath):
+        raise RuntimeError("Could not find gamelist file at %s" % filepath)
+    
     _backupOriginalFile(filepath)
 
     gamelistXml = _openGamelistAsXml(filepath)
