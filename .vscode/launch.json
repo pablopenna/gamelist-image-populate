@@ -5,12 +5,36 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: Current File with Arguments",
+            "name": "Old file",
             "type": "debugpy",
             "request": "launch",
             "program": "gamelist-image-populate.py",
             "console": "integratedTerminal",
-            "args": "--folder cps1"
+            "args": "--folder ~/Downloads/cps1 --gamelist-file Dreamcast.dat"
+        },
+        {
+            "name": "Single folder - wrong file format",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "GamelistImagePopulate/main.py",
+            "console": "integratedTerminal",
+            "args": "--folder ~/Downloads/cps1 --gamelist-file Dreamcast.dat --process-single-folder"
+        },
+        {
+            "name": "Multiple folders",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "GamelistImagePopulate/main.py",
+            "console": "integratedTerminal",
+            "args": "--folder ~/Downloads/"
+        },
+        {
+            "name": "Multiple folders - dryrun",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "GamelistImagePopulate/main.py",
+            "console": "integratedTerminal",
+            "args": "--folder ~/Downloads/"
         }
     ]
 }
