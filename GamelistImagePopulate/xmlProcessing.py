@@ -5,12 +5,12 @@ from fileUtils import backupFile, doesFileBackupExists, doesFileExists, getFileP
 
 defaultImageExtension = ".png"
 
-def processAllSubfolders(folder: str, gamelistFile: str, clearImages: bool, dryrun: bool, overwrite: bool, imageFolderName: str):
+def processAllSubfolders(folder: str, gamelistFile: str, clearImages: bool, dryrun: bool, overwrite: bool, imageFolderName: str, useDefaultImage: bool):
     for subdirectory in getSubdirectories(folder):
-        processSingleFolder(subdirectory, gamelistFile, clearImages, dryrun, overwrite, imageFolderName)
+        processSingleFolder(subdirectory, gamelistFile, clearImages, dryrun, overwrite, imageFolderName, useDefaultImage)
 
-def processSingleFolder(folder: str, gamelistFile: str, clearImages: bool, dryrun: bool, overwrite: bool, imageFolderName: str):
-    print("[INFO] processing folder {} with gamelistFileName={}, clearImages={}, dryrun={}, overwrite={}, imageFolderName={}".format(folder, gamelistFile, clearImages, dryrun, overwrite, imageFolderName))
+def processSingleFolder(folder: str, gamelistFile: str, clearImages: bool, dryrun: bool, overwrite: bool, imageFolderName: str, useDefaultImage: bool):
+    print("[INFO] processing folder {} with gamelistFileName={}, clearImages={}, dryrun={}, overwrite={}, imageFolderName={}, useDefaultImage={}".format(folder, gamelistFile, clearImages, dryrun, overwrite, imageFolderName, useDefaultImage))
     pathToGamelistFile = getFilePathFrom(folder, gamelistFile)
     if not doesFileExists(pathToGamelistFile):
         print("[ERROR] Could not find gamelist file at %s. Skipping..." % pathToGamelistFile)
@@ -28,7 +28,7 @@ def processSingleFolder(folder: str, gamelistFile: str, clearImages: bool, dryru
         if clearImages:
             removeImageFromGameEntry(game)
         else:
-            _processGameEntry(folder, game, overwrite, imageFolderName)
+            _processGameEntry(folder, game, overwrite, imageFolderName, useDefaultImage)
 
     if not dryrun:
         gamelistXml.write(pathToGamelistFile)
@@ -42,11 +42,11 @@ def _getGameEntriesFromXmlRoot(root: ElementTree.Element):
         return iter(())
     return root.iter("game")
 
-def _processGameEntry(baseFolder:str, gameEntry: ElementTree.Element, overwrite: bool, imageFolderName: str):
+def _processGameEntry(baseFolder:str, gameEntry: ElementTree.Element, overwrite: bool, imageFolderName: str, useDefaultImage: bool):
     if _doesGameEntryHasImageTag(gameEntry) and not overwrite:
         print("[WARN] Game {} already has image entry and overwrite flag is False. Skipping...".format(_getGameNameFromGameEntry(gameEntry)))
         return
-    _addImageToGameEntry(baseFolder, gameEntry, imageFolderName)
+    _addImageToGameEntry(baseFolder, gameEntry, imageFolderName, useDefaultImage)
 
 def removeImageFromGameEntry(gameEntry: ElementTree.Element):
     imageTag = _getImageFromGameEntry(gameEntry)
@@ -69,13 +69,13 @@ def _getImageFromGameEntry(gameEntry: ElementTree.Element):
 def _doesGameEntryHasImageTag(gameEntry: ElementTree.Element):
     return _getImageFromGameEntry(gameEntry) != None
 
-def _addImageToGameEntry(baseFolder:str, gameEntry: ElementTree.Element, imageFolderName: str):
-    imagePath = _getImagePathForGame(baseFolder, gameEntry, imageFolderName)
+def _addImageToGameEntry(baseFolder:str, gameEntry: ElementTree.Element, imageFolderName: str, useDefaultImage: bool):
+    imagePath = _getImagePathForGame(baseFolder, gameEntry, imageFolderName, useDefaultImage)
     if imagePath != None:
         image = ElementTree.SubElement(gameEntry, "image")
         image.text = imagePath
 
-def _getImagePathForGame(baseFolder:str, gameEntry: ElementTree.Element, imageFolderName: str):
+def _getImagePathForGame(baseFolder:str, gameEntry: ElementTree.Element, imageFolderName: str, useDefaultImage: bool):
     imageFilePath = _getFilepathForImageMatchingGameFilename(
         baseFolder, 
         gameEntry,
@@ -85,6 +85,12 @@ def _getImagePathForGame(baseFolder:str, gameEntry: ElementTree.Element, imageFo
         gameEntry,
         imageFolderName
     )
+    if useDefaultImage:
+        imageFilePath = imageFilePath or _getFilepathForDefaultImage(
+        baseFolder,
+        imageFolderName
+    )
+
     if imageFilePath == None:
         print("[WARN] Could not find existing image for {}".format(_getGameNameFromGameEntry(gameEntry)))
     else:
@@ -98,3 +104,6 @@ def _getFilepathForImageMatchingGameName(baseFolder:str, gameEntry: ElementTree.
 
 def _getFilepathForImageMatchingGameFilename(baseFolder:str, gameEntry: ElementTree.Element, imageFolderName: str):
     return getFilePathForImageWithName(baseFolder, imageFolderName, _getFilenameFromGameEntry(gameEntry), defaultImageExtension)
+
+def _getFilepathForDefaultImage(baseFolder:str, imageFolderName: str):
+    return getFilePathForImageWithName(baseFolder, imageFolderName, "default", defaultImageExtension)

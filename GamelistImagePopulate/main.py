@@ -11,7 +11,8 @@ if __name__ == "__main__":
             clearImages = args.clear_images, 
             dryrun = args.dry_run, 
             overwrite = args.overwrite,
-            imageFolderName=args.images_folder_name
+            imageFolderName = args.images_folder_name,
+            useDefaultImage = args.use_default_image
         )
     else:
         processAllSubfolders(
@@ -20,5 +21,6 @@ if __name__ == "__main__":
             clearImages = args.clear_images, 
             dryrun = args.dry_run, 
             overwrite = args.overwrite,
-            imageFolderName=args.images_folder_name
+            imageFolderName = args.images_folder_name,
+            useDefaultImage = args.use_default_image
         )

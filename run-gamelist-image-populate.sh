@@ -3,5 +3,5 @@
 # Go to the folder where this script is located
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-python3 GamelistImagePopulate/main.py --folder /roms2/ > gamelist-image-populate.log 2>&1
+python3 GamelistImagePopulate/main.py --folder /roms2/ --images-folder-name images --use-default-image > gamelist-image-populate.log 2>&1
 echo "Finished!" >> gamelist-image-populate.log

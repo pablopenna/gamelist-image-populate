@@ -29,6 +29,14 @@ def _initParameterParser() -> argparse.ArgumentParser:
         required=False
     )
     parser.add_argument(
+        "--use-default-image",
+        help="If no image is found for a game, it will use a default.png image in the images folder (if it exists). Defaults to False",
+        action="store_const",
+        const=True,
+        default=False,
+        required=False
+    )
+    parser.add_argument(
         "--dry-run", 
         help="For testing. Does not modify any file. Defaults to False",
         action="store_const",
